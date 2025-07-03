@@ -1,5 +1,6 @@
 package com.db.tflm.manualcapture.action;
 
+import io.gatling.commons.validation.Failure;
 import io.gatling.commons.validation.Success;
 import io.gatling.commons.validation.Validation;
 import io.gatling.core.session.Expression;
@@ -25,7 +26,7 @@ public class CreatedEventTracker implements Tracker {
             
             return new Success<>(null);
         } catch (Exception e) {
-            return Validation.failure(e.getMessage());
+            return new Failure(e.getMessage());
         }
     }
 }

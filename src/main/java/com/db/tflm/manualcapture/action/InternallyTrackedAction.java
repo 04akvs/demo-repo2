@@ -103,13 +103,13 @@ public class InternallyTrackedAction extends RequestAction {
         } else if (validation1.isFailure() && validation2.isFailure()) {
             String err1 = ((Failure) validation1).message();
             String err2 = ((Failure) validation2).message();
-            return Validation.failure(err1 + err2);
+            return new Failure(err1 + err2);
         } else if (validation1.isFailure()) {
             String err = ((Failure) validation1).message();
-            return Validation.failure(err);
+            return new Failure(err);
         } else {
             String err = ((Failure) validation2).message();
-            return Validation.failure(err);
+            return new Failure(err);
         }
     }
 }
