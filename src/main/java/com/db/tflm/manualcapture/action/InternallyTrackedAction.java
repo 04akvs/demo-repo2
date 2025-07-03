@@ -12,11 +12,9 @@ import io.gatling.core.session.Expression;
 import io.gatling.core.session.Session;
 import io.gatling.core.stats.StatsEngine;
 import io.gatling.core.structure.ScenarioContext;
-import io.gatling.core.util.NameGen;
-
 import java.util.function.BinaryOperator;
 
-public class InternallyTrackedAction extends RequestAction implements NameGen {
+public class InternallyTrackedAction extends RequestAction {
     
     private final RequestAction requestWith;
     private final Tracker trackWith;
@@ -41,7 +39,7 @@ public class InternallyTrackedAction extends RequestAction implements NameGen {
         this.coreComponents = context.coreComponents();
         this.statsEngine = coreComponents.statsEngine();
         this.clock = coreComponents.clock();
-        this.name = genName("InternallyTrackedAction");
+        this.name = "InternallyTrackedAction";
     }
 
     @Override
