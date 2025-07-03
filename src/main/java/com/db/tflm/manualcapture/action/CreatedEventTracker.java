@@ -25,7 +25,7 @@ public class CreatedEventTracker implements Tracker {
             
             return new Success<>(null);
         } catch (Exception e) {
-            return new io.gatling.commons.validation.Failure(e.getMessage());
+            return Validation.failure(e.getMessage());
         }
     }
 }
