@@ -7,7 +7,7 @@ import io.gatling.core.action.builder.ActionBuilder;
 import io.gatling.core.session.Expression;
 import io.gatling.core.session.Session;
 import io.gatling.core.structure.ScenarioContext;
-import io.gatling.http.request.builder.HttpRequestBuilder;
+import io.gatling.http.action.HttpRequestActionBuilder;
 
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -24,9 +24,9 @@ public final class InternallyTrackedActionBuilder extends ActionBuilder {
         this.tracker = Optional.empty();
     }
 
-    public InternallyTrackedActionBuilder requestWithHttp(HttpRequestBuilder httpRequestBuilder) {
+    public InternallyTrackedActionBuilder requestWithHttp(HttpRequestActionBuilder httpRequestActionBuilder) {
         this.requestActionBuilder = Optional.of((ctx, next) -> 
-            (RequestAction) httpRequestBuilder.build(ctx, next)
+            (RequestAction) httpRequestActionBuilder.build(ctx, next)
         );
         return this;
     }
