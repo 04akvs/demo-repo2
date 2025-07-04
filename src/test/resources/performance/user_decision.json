@@ -1,0 +1,15 @@
+{
+  "action": "APPROVE_LIMIT_REQUEST",
+  "sourceReference": "#{sourceReference}",
+  "entityVersion": 8,
+  "userId": "#{userId}",
+  "requestedBy": "#{requestedBy}",
+  "approvalTimestamp": "#{timestamp}",
+  "decision": "APPROVED",
+  "comments": "Automated approval via performance test",
+  "metadata": {
+    "testExecution": true,
+    "performanceTest": "#{__TestPlanName()}",
+    "threadGroup": "#{__threadNum()}"
+  }
+}
