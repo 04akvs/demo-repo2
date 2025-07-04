@@ -3,6 +3,7 @@ package com.db.tflm.manualcapture.gatling.util;
 import io.gatling.javaapi.core.ChainBuilder;
 import io.gatling.javaapi.core.FeederBuilder;
 import io.gatling.javaapi.core.Session;
+import io.gatling.javaapi.http.HttpRequestBuilder;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
 import com.db.tflm.manualcapture.gatling.action.InternallyTrackedActionBuilder;
@@ -25,17 +26,19 @@ public class TransactionUtil {
     
     /**
      * Main method for requesting transaction approval to bb limits
-     * Fixed the type mismatch issue by properly chaining the HTTP request
+     * Fixed to pass HttpRequestBuilder (not HttpRequestActionBuilder) to maintain Scala logic
      */
     public static ChainBuilder requestTransactionApprovalTobbLimits(String requestName) {
         return feed(createUserDecisionFeederForAction(ActionType.APPROVE_LIMIT_REQUEST, 8))
             .exec(
                 InternallyTrackedActionBuilder.internallyTrackedAction(requestName)
                 .requestWithHttp(
+                    // Create HttpRequestBuilder - this is the builder before .body() and .check()
                     http("Send Approval Request")
                     .post("/api/manualCapture/#{sourceReference}:0/status")
                     .body(ElFileBody("performance/user_decision.json"))
                     .check(bodyString().saveAs("RESPONSE_BODY"))
+                    // The .build() will be called inside requestWithHttp method
                 )
             )
             .exec(session -> {
@@ -59,18 +62,10 @@ public class TransactionUtil {
     /**
      * Alternative method using expression for dynamic request names
      */
-    public static ChainBuilder requestTransactionApprovalTobbLimits(io.gatling.javaapi.core.Session.Expression<String> requestNameExpression) {
+    public static ChainBuilder requestTransactionApprovalTobbLimits(Session.Expression<String> requestNameExpression) {
         return feed(createUserDecisionFeederForAction(ActionType.APPROVE_LIMIT_REQUEST, 8))
-            .exec(session -> {
-                try {
-                    String requestName = requestNameExpression.apply(session);
-                    return session.set("dynamicRequestName", requestName);
-                } catch (Exception e) {
-                    throw new RuntimeException("Failed to evaluate request name expression", e);
-                }
-            })
             .exec(
-                InternallyTrackedActionBuilder.internallyTrackedAction("#{dynamicRequestName}")
+                InternallyTrackedActionBuilder.internallyTrackedAction(requestNameExpression)
                 .requestWithHttp(
                     http("Send Approval Request")
                     .post("/api/manualCapture/#{sourceReference}:0/status")
