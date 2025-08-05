@@ -3,7 +3,6 @@ package com.db.tflm.sdpingestion.util;
 import com.db.tf.messaging.config.Topic;
 import com.db.tf.messaging.producer.Producer;
 import com.db.tflm.sdpingestion.SpringApplicationContext;
-import com.db.tflm.sdpingestion.request.builder.KafkaRequestReplyJmsActionBuilder;
 import com.db.tflm.sdpingestion.simulation.FacilityEventFeeder;
 import com.db.tflm.sdpingestion.simulation.InstrumentEventFeeder;
 import com.db.tflm.sdpingestion.simulation.ScenarioConstants;
@@ -67,18 +66,19 @@ public class RequestUtil {
         
         return repeat(repeatNum).on(
             feed(eventFeeder.get())
-            .exec(
-                KafkaRequestReplyJmsActionBuilder.<Instrument>kafkaRequestReplyJms(
-                    ScenarioConstants.SEND_INSTRUMENT_REQUEST_TO_KAFKA_RECEIVE_IN_JMS)
-                .beforeSendingMessage(beforeSendingMessage)
-                .useProducer(producer)
-                .withPayload(ElFileBody(filePath), new TypeReference<Instrument>() {})
-                .toTopic(instrumentTopic, session -> getKafkaMessageKey())
-                .waitForMessageWithInternalMessageReceiver(
-                    internalMessageReceiver,
-                    instrument -> instrument.getExposure().getEventId()
-                )
-            )
+            .exec(session -> session.set("filePath", filePath))
+            .exec(ElFileBody(filePath))
+            .exec(KafkaJmsUtil.sendToKafkaAndReceiveFromJms(
+                ScenarioConstants.SEND_INSTRUMENT_REQUEST_TO_KAFKA_RECEIVE_IN_JMS,
+                producer,
+                instrumentTopic,
+                session -> getKafkaMessageKey(),
+                session -> session.getString("gatling.core.body.string"), // Standard Gatling session key for body
+                internalMessageReceiver,
+                new TypeReference<Instrument>() {},
+                instrument -> ((Instrument) instrument).getExposure().getEventId(),
+                beforeSendingMessage != null ? obj -> beforeSendingMessage.accept((Instrument) obj) : null
+            ))
         );
     }
     
@@ -110,18 +110,19 @@ public class RequestUtil {
         
         return repeat(repeatNum).on(
             feed(eventFeeder.get())
-            .exec(
-                KafkaRequestReplyJmsActionBuilder.<Facility>kafkaRequestReplyJms(
-                    ScenarioConstants.SEND_FACILITY_REQUEST_TO_KAFKA_RECEIVE_IN_JMS)
-                .beforeSendingMessage(beforeSendingMessage)
-                .useProducer(producer)
-                .withPayload(ElFileBody(filePath), new TypeReference<Facility>() {})
-                .toTopic(facilityTopic, session -> getKafkaMessageKey())
-                .waitForMessageWithInternalMessageReceiver(
-                    internalMessageReceiver,
-                    facility -> facility.getExposure().getEventId()
-                )
-            )
+            .exec(session -> session.set("filePath", filePath))
+            .exec(ElFileBody(filePath))
+            .exec(KafkaJmsUtil.sendToKafkaAndReceiveFromJms(
+                ScenarioConstants.SEND_FACILITY_REQUEST_TO_KAFKA_RECEIVE_IN_JMS,
+                producer,
+                facilityTopic,
+                session -> getKafkaMessageKey(),
+                session -> session.getString("gatling.core.body.string"), // Standard Gatling session key for body
+                internalMessageReceiver,
+                new TypeReference<Facility>() {},
+                facility -> ((Facility) facility).getExposure().getEventId(),
+                beforeSendingMessage != null ? obj -> beforeSendingMessage.accept((Facility) obj) : null
+            ))
         );
     }
     
