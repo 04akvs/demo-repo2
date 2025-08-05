@@ -66,14 +66,12 @@ public class RequestUtil {
         
         return repeat(repeatNum).on(
             feed(eventFeeder.get())
-            .exec(session -> session.set("filePath", filePath))
-            .exec(ElFileBody(filePath))
+            .exec(ElFileBody(filePath))  // This resolves ${eventType} and other EL expressions
             .exec(KafkaJmsUtil.sendToKafkaAndReceiveFromJms(
                 ScenarioConstants.SEND_INSTRUMENT_REQUEST_TO_KAFKA_RECEIVE_IN_JMS,
                 producer,
                 instrumentTopic,
                 session -> getKafkaMessageKey(),
-                session -> session.getString("gatling.core.body.string"), // Standard Gatling session key for body
                 internalMessageReceiver,
                 new TypeReference<Instrument>() {},
                 instrument -> ((Instrument) instrument).getExposure().getEventId(),
@@ -110,14 +108,12 @@ public class RequestUtil {
         
         return repeat(repeatNum).on(
             feed(eventFeeder.get())
-            .exec(session -> session.set("filePath", filePath))
-            .exec(ElFileBody(filePath))
+            .exec(ElFileBody(filePath))  // This resolves ${eventType} and other EL expressions
             .exec(KafkaJmsUtil.sendToKafkaAndReceiveFromJms(
                 ScenarioConstants.SEND_FACILITY_REQUEST_TO_KAFKA_RECEIVE_IN_JMS,
                 producer,
                 facilityTopic,
                 session -> getKafkaMessageKey(),
-                session -> session.getString("gatling.core.body.string"), // Standard Gatling session key for body
                 internalMessageReceiver,
                 new TypeReference<Facility>() {},
                 facility -> ((Facility) facility).getExposure().getEventId(),

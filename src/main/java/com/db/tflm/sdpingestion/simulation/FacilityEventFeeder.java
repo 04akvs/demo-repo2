@@ -24,6 +24,7 @@ public class FacilityEventFeeder implements Supplier<FeederBuilder<String>> {
         data.put("facilityId", "FAC_" + System.currentTimeMillis());
         data.put("timestamp", System.currentTimeMillis());
         
-        return listFeeder(data).random();
+        // Create a single record feeder
+        return listFeeder(java.util.Collections.singletonList(data)).circular();
     }
 }

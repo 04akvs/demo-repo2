@@ -24,6 +24,7 @@ public class InstrumentEventFeeder implements Supplier<FeederBuilder<String>> {
         data.put("instrumentId", "INSTR_" + System.currentTimeMillis());
         data.put("timestamp", System.currentTimeMillis());
         
-        return listFeeder(data).random();
+        // Create a single record feeder
+        return listFeeder(java.util.Collections.singletonList(data)).circular();
     }
 }

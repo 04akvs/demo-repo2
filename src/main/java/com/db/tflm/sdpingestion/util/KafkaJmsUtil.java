@@ -87,14 +87,13 @@ public class KafkaJmsUtil {
     }
     
     /**
-     * Overloaded method with String message key
+     * Simplified method that automatically gets message body from session (set by ElFileBody)
      */
     public static Function<Session, Session> sendToKafkaAndReceiveFromJms(
             String requestName,
             Producer kafkaProducer,
             Topic topic,
             Function<Session, String> messageKeyFunc,
-            Function<Session, String> messageBodyFunc,
             MockInternalMessageReceiver jmsReceiver,
             TypeReference<?> typeRef,
             Function<Object, NonVersionedIdentifier> messageMatcherFunction,
@@ -102,7 +101,8 @@ public class KafkaJmsUtil {
         
         return session -> {
             String messageKey = messageKeyFunc.apply(session);
-            String messageBody = messageBodyFunc.apply(session);
+            // Get the message body from session (resolved by ElFileBody)
+            String messageBody = getMessageBodyFromSession(session);
             
             return sendToKafkaAndReceiveFromJms(
                 requestName, kafkaProducer, topic, messageKey, messageBody, 
@@ -123,8 +123,8 @@ public class KafkaJmsUtil {
             Consumer<Object> beforeSendCallback) {
         
         return session -> {
-            // Get the message body from session (set by ElFileBody)
-            String messageBody = session.getString("requestBody");
+            // Get the message body from session (resolved by ElFileBody)
+            String messageBody = getMessageBodyFromSession(session);
             
             return sendToKafkaAndReceiveFromJms(
                 requestName,
@@ -151,25 +151,23 @@ public class KafkaJmsUtil {
     }
     
     /**
-     * Creates a session function that stores the file body in the session
-     * This replaces the need for BodyWithStringExpression
+     * Gets the message body from session with proper EL resolution
+     * This handles both ElFileBody content and manual body setting
      */
-    public static Function<Session, Session> loadMessageBody(String filePath) {
-        return session -> {
-            try {
-                // In a real implementation, you'd read the file
-                // For now, this is a placeholder that would load from classpath
-                String body = loadFileFromClasspath(filePath);
-                return session.set("requestBody", body);
-            } catch (Exception e) {
-                return session.set("error", "Failed to load message body: " + e.getMessage());
-            }
-        };
-    }
-    
-    private static String loadFileFromClasspath(String filePath) {
-        // Placeholder implementation
-        // In reality, you'd use Files.readString() or similar
-        return "{}"; // Empty JSON as placeholder
+    private static String getMessageBodyFromSession(Session session) {
+        // First try the standard Gatling session key for ElFileBody
+        String body = session.getString("gatling.core.body.string");
+        
+        if (body == null) {
+            // Fallback to custom key if set manually
+            body = session.getString("requestBody");
+        }
+        
+        if (body == null) {
+            throw new RuntimeException("No message body found in session. Make sure to call ElFileBody() before this action.");
+        }
+        
+        // The body should already be resolved by Gatling's ElFileBody
+        return body;
     }
 }
