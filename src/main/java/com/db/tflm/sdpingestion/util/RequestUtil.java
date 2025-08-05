@@ -19,6 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
+import static com.db.tflm.sdpingestion.util.KafkaJmsActionBuilder.*;
 
 public class RequestUtil {
     
@@ -67,7 +68,7 @@ public class RequestUtil {
         return repeat(repeatNum).on(
             feed(eventFeeder.get())
             .exec(ElFileBody(filePath))  // This resolves ${eventType} and other EL expressions
-            .exec(KafkaJmsUtil.sendToKafkaAndReceiveFromJms(
+            .exec(KafkaJmsActionBuilder.kafkaJmsAction(
                 ScenarioConstants.SEND_INSTRUMENT_REQUEST_TO_KAFKA_RECEIVE_IN_JMS,
                 producer,
                 instrumentTopic,
@@ -109,7 +110,7 @@ public class RequestUtil {
         return repeat(repeatNum).on(
             feed(eventFeeder.get())
             .exec(ElFileBody(filePath))  // This resolves ${eventType} and other EL expressions
-            .exec(KafkaJmsUtil.sendToKafkaAndReceiveFromJms(
+            .exec(KafkaJmsActionBuilder.kafkaJmsAction(
                 ScenarioConstants.SEND_FACILITY_REQUEST_TO_KAFKA_RECEIVE_IN_JMS,
                 producer,
                 facilityTopic,
